@@ -1,1 +1,165 @@
-Hello, World!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Particle System</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            cursor: none;
+        }
+        canvas {
+            display: block;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 14px;
+            user-select: none;
+        }
+        #promo {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #fff;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        #promo:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="info">Move your mouse to attract particles | Click to explode</div>
+    <a href="https://guns.lol/leska" target="_blank" id="promo">Check out my website!</a>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const particles = [];
+        const particleCount = 800;
+        const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+        let hue = 0;
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 2 + 1;
+                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                this.life = 1;
+            }
+            
+            update() {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 200) {
+                    const force = (200 - distance) / 200;
+                    const angle = Math.atan2(dy, dx);
+                    this.vx += Math.cos(angle) * force * 0.5;
+                    this.vy += Math.sin(angle) * force * 0.5;
+                }
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+                
+                this.color = `hsl(${hue + distance * 0.5}, 100%, 50%)`;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+            
+            explode() {
+                this.vx = (Math.random() - 0.5) * 20;
+                this.vy = (Math.random() - 0.5) * 20;
+            }
+        }
+        
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        
+        canvas.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        
+        canvas.addEventListener('click', () => {
+            particles.forEach(particle => particle.explode());
+        });
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            hue = (hue + 0.5) % 360;
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            ctx.save();
+            ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+            ctx.beginPath();
+            ctx.arc(mouse.x, mouse.y, 20, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>
