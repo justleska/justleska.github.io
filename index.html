@@ -38,6 +38,7 @@
             background: radial-gradient(ellipse at center, #111111 0%, #000000 100%);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
@@ -158,15 +159,18 @@
             padding: 12px 20px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             position: relative;
             margin: -1px -1px 0 -1px;
+            cursor: pointer;
         }
 
         /* styles for terminal control buttons */
         .terminal-controls {
             display: flex;
             gap: 8px;
+            position: absolute;
+            left: 20px;
         }
 
         /* back button styling */
@@ -209,14 +213,6 @@
             font-weight: 500;
             letter-spacing: 0.5px;
             text-align: center;
-            flex: 1;
-        }
-
-        /* terminal user label styling */
-        .terminal-user {
-            color: var(--accent-glow);
-            font-size: 0.8rem;
-            opacity: 0.8;
         }
 
         /* top border shimmer effect */
@@ -389,6 +385,7 @@
             }
         }
 
+
         /* responsive adjustments for smaller screens */
         @media (max-width: 768px) {
             .container {
@@ -443,12 +440,11 @@
     </div>
 
     <div class="container">
-        <div class="terminal-titlebar">
+        <div class="terminal-titlebar" id="terminalTitlebar">
             <div class="terminal-controls">
                 <a href="#" class="terminal-back-button" id="backButton" onclick="runCommand('whoami')" style="display: none;">&lt; BACK</a>
             </div>
             <div class="terminal-title">leska.sh</div>
-            <div class="terminal-user">guest</div>
         </div>
 
         <div class="terminal-section" id="terminalSection">
@@ -522,6 +518,12 @@
         // dom references for terminal elements
         const terminalSection = document.getElementById('terminalSection');
         const backButton = document.getElementById('backButton');
+        const terminalTitlebar = document.getElementById('terminalTitlebar'); // get the title bar element
+
+        // click counter for the title bar
+        let titleBarClickCount = 0;
+        let lastClickTime = 0;
+        const clickThreshold = 500; // milliseconds
 
         // content for the terminal display
         const welcomeOutput = `
@@ -547,7 +549,7 @@
                     <li style="margin-bottom: 10px;">
                         <a href="https://github.com/justleska/justleska.github.io" target="_blank" style="color: var(--accent-glow); text-decoration: none;">
                             <span style="color: #81c784;">[this website]</span>
-                        </a> - :D
+                        </a> - :d
                     </li>
                     <li style="margin-bottom: 10px;">
                         <a href="https://justleska.github.io/" target="_blank" style="color: var(--accent-glow); text-decoration: none;">
@@ -585,6 +587,31 @@
                 </ul>
             </div>
         `;
+
+        // yay credits
+        const creditsContent = `
+            <div class="output">
+                <p class="welcome-title">credits</p>
+                <p class="welcome-subtitle" style="margin-top: 10px;">
+                    this website was built with inspiration and assets from:
+                </p>
+                <ul style="list-style: none; padding: 0; margin-top: 15px; font-size: 0.95rem;">
+                    <li style="margin-bottom: 10px;">
+                        <span style="color: #81c784;">jetbrains mono font</span> - cool font :d
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <span style="color: #81c784;">apple liquid glass</span> - for glassmorphism effects ideas
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <span style="color: #81c784;">open-source code & yt tutorials</span> - for inspiration and help
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <span style="color: #81c784;">meowpa.ws</span> - for inspiration
+                    </li>
+                </ul>
+            </div>
+        `;
+
 
         const buttonsHTML = `
             <div class="buttons" id="terminalButtons">
@@ -735,7 +762,7 @@
 
             let currentDelay = 0;
             let outputContent = '';
-            // Only append buttons for the 'whoami' command.
+            // only append buttons for the 'whoami' command.
             let shouldAppendButtons = (command === 'whoami');
 
             // display the simulated command
@@ -758,7 +785,11 @@
             } else if (command === "links") {
                 outputContent = linksContent;
                 backButton.style.display = 'flex';
-            } else {
+            } else if (command === "credits") { // handle the new 'credits' command
+                outputContent = creditsContent;
+                backButton.style.display = 'flex';
+            }
+            else {
                 // display "command not found" for unrecognized commands
                 outputContent = `<div class="output">command not found: <span class="command">${command}</span></div>`;
                 backButton.style.display = 'flex';
@@ -770,7 +801,7 @@
                 currentDelay += 0.4;
             }
 
-            // display buttons if shouldAppendButtons is true
+            // display buttons if shouldappendbuttons is true
             if (shouldAppendButtons) {
                 appendTerminalLine(buttonsHTML, currentDelay);
                 setupButtonHandlers(); // re-attach event listeners for new buttons
@@ -779,9 +810,10 @@
 
         /**
          * sets up click handlers for glass buttons, including a ripple effect.
+         * only for the main navigation buttons.
          */
         function setupButtonHandlers() {
-            // re-clone and replace buttons to remove old event listeners and prevent duplicates
+            // remove existing event listeners to prevent duplicates
             document.querySelectorAll('.glass-button').forEach(oldButton => {
                 const newButton = oldButton.cloneNode(true);
                 oldButton.parentNode.replaceChild(newButton, oldButton);
@@ -823,6 +855,23 @@
             });
         }
 
+        // add event listener for the terminal title bar
+        terminalTitlebar.addEventListener('click', () => {
+            const currentTime = new Date().getTime();
+            if (currentTime - lastClickTime < clickThreshold) {
+                titleBarClickCount++;
+            } else {
+                titleBarClickCount = 1; // reset if clicks are too slow
+            }
+            lastClickTime = currentTime;
+
+            if (titleBarClickCount === 5) {
+                runCommand('credits');
+                titleBarClickCount = 0; // reset after opening credits
+            }
+        });
+
+
         // global variables for performance monitoring
         let frameCount = 0;
         const maxActiveLines = 60; // maximum number of active background lines
@@ -860,7 +909,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeCodeAnimation(); // start the background animation
             runCommand('whoami'); // display initial welcome message
-            // monitorPerformance(); // Start the performance monitor
+            setupButtonHandlers(); // attach handlers for the initial main navigation buttons
+            // monitorperformance(); // start the performance monitor
         });
     </script>
 </body>
