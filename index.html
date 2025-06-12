@@ -563,7 +563,7 @@
         // content for the terminal display
         const welcomeOutput = `
             <div class="output">
-                <div class="welcome-title">hi, i'm leska</div>
+                <div class="welcome-title">👋 hi, i'm leska</div>
                 <div class="welcome-subtitle">welcome to my personal website</div>
                 <div id="discord-status-container" style="margin-top: 15px; font-size: 0.95rem;">
                     <span class="status-indicator" id="discord-status-dot"></span>
@@ -849,11 +849,11 @@
                         const musicActivity = data.data.activities.find(act => act.name === 'Apple Music' || 'Cider');
 
                         if (customStatusActivity && customStatusActivity.state) {
-                            activityMessage = ` | ${customStatusActivity.state}`;
+                            activityMessage = ` | 💭 ${customStatusActivity.state}`;
                         } else if (gameActivity) {
-                            activityMessage = ` | playing ${gameActivity.name}`;
+                            activityMessage = ` | 🎮 playing ${gameActivity.name}`;
                         } else if (musicActivity) {
-                            activityMessage = ` | listening to Apple Music`;
+                            activityMessage = ` | 🎵 listening to Apple Music`;
                             if (musicActivity.details) {
                                 activityMessage += `: ${musicActivity.details}`;
                             }
