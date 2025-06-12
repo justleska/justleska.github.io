@@ -735,6 +735,8 @@
             terminalSection.innerHTML = ''; // clear previous output
 
             let currentDelay = 0;
+            let outputContent = '';
+            let shouldAppendButtons = false;
 
             // display the simulated command
             appendTerminalLine(
@@ -743,13 +745,10 @@
             );
             currentDelay += 0.2; // small delay before next line
 
-            let outputContent = '';
-            let showButtonsAfter = false;
-
             // determine content to display based on the command
             if (command === "whoami") {
                 outputContent = welcomeOutput;
-                showButtonsAfter = true;
+                shouldAppendButtons = true; // Buttons appear only after 'whoami'
                 backButton.style.display = 'none'; // hide back button on welcome screen
             } else if (command === "me") {
                 outputContent = aboutContent;
@@ -760,13 +759,9 @@
             } else if (command === "links") {
                 outputContent = linksContent;
                 backButton.style.display = 'flex';
-            } else if (command === "show-buttons") {
-                showButtonsAfter = true;
-                backButton.style.display = 'flex';
             } else {
                 // display "command not found" for unrecognized commands
                 outputContent = `<div class="output">command not found: <span class="command">${command}</span></div>`;
-                showButtonsAfter = true;
                 backButton.style.display = 'flex';
             }
 
@@ -776,15 +771,8 @@
                 currentDelay += 0.4;
             }
 
-            // display buttons if required by the command
-            if (showButtonsAfter) {
-                if (command !== "show-buttons") {
-                    appendTerminalLine(
-                        `<span class="prompt">guest@leska.sh</span> <span style="color: var(--text-secondary);">~</span> <span style="color: var(--text-secondary);">%</span> <span class="command">show-buttons</span>`,
-                        currentDelay
-                    );
-                    currentDelay += 0.2;
-                }
+            // display buttons only if shouldAppendButtons is true (i.e., only for whoami initially)
+            if (shouldAppendButtons) {
                 appendTerminalLine(buttonsHTML, currentDelay);
                 setupButtonHandlers(); // re-attach event listeners for new buttons
             }
