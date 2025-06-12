@@ -197,7 +197,9 @@
         .terminal-back-button:hover {
             background: rgba(255, 255, 255, 0.25);
             transform: translateY(-1px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3), 0 0 15px var(--accent-glow);
+            box-shadow:
+                0 6px 15px rgba(0, 0, 0, 0.3),
+                0 0 15px var(--accent-glow);
             border-color: rgba(255, 255, 255, 0.4);
         }
 
@@ -385,6 +387,36 @@
             }
         }
 
+        /* styles for discord status indicator */
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+            background-color: grey; /* default for unknown */
+        }
+
+        /* color for online status */
+        .status-online {
+            background-color: #43b581; /* discord green */
+        }
+
+        /* color for idle status */
+        .status-idle {
+            background-color: #faa61a; /* discord orange */
+        }
+
+        /* color for do not disturb status */
+        .status-dnd {
+            background-color: #f04747; /* discord red */
+        }
+
+        /* color for offline status */
+        .status-offline {
+            background-color: #747f8d; /* discord grey */
+        }
 
         /* responsive adjustments for smaller screens */
         @media (max-width: 768px) {
@@ -452,6 +484,9 @@
     </div>
 
     <script>
+        // my discord user id for lanyard api
+        const DISCORD_USER_ID = '1179438971995037878';
+
         // data for animated background code snippets
         const instructionSets = {
             x86: [
@@ -528,8 +563,13 @@
         // content for the terminal display
         const welcomeOutput = `
             <div class="output">
-                <div class="welcome-title">welcome to leska.sh</div>
-                <div class="welcome-subtitle">cybersecurity | ui design</div>
+                <div class="welcome-title">hi, i'm leska</div>
+                <div class="welcome-subtitle">welcome to my personal website</div>
+                <div id="discord-status-container" style="margin-top: 15px; font-size: 0.95rem;">
+                    <span class="status-indicator" id="discord-status-dot"></span>
+                    <span id="discord-status-text">checking status...</span>
+                    <span id="discord-activity-text" style="display: none; margin-left: 5px;"></span>
+                </div>
             </div>
         `;
 
@@ -537,7 +577,7 @@
             <div class="output">
                 <p class="welcome-title">about me</p>
                 <p class="welcome-subtitle" style="margin-top: 10px;">
-                    hi! i am from leska. i live in france 🇫🇷 and like doing cybersecurity stuff, crypto and messing out with electronics.
+                    hi! i am from leska. i live in france 🇫🇷 and like doing cybersecurity stuff, UI design, crypto and messing out with electronics.
                 </p>
             </div>
         `;
@@ -603,7 +643,7 @@
                         <span style="color: #81c784;">apple liquid glass</span> - for glassmorphism effects ideas
                     </li>
                     <li style="margin-bottom: 10px;">
-                        <span style="color: #81c784;">open-source code & yt tutorials</span> - for inspiration and help
+                        <span style="color: #81c784;">lanyard api</span> - for discord status
                     </li>
                     <li style="margin-bottom: 10px;">
                         <span style="color: #81c784;">meowpa.ws</span> - for inspiration
@@ -754,6 +794,100 @@
         }
 
         /**
+         * fetches and displays discord status using the lanyard api.
+         */
+        async function fetchDiscordStatus() {
+            const statusDot = document.getElementById('discord-status-dot');
+            const statusText = document.getElementById('discord-status-text');
+            const activityText = document.getElementById('discord-activity-text');
+
+            // set initial loading state
+            if (statusDot) statusDot.className = 'status-indicator'; // reset classes
+            if (statusText) statusText.textContent = 'checking status...';
+            if (activityText) activityText.style.display = 'none'; // hide activity initially
+
+            try {
+                // retrieve user data from lanyard api
+                const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_USER_ID}`);
+                const data = await response.json();
+
+                // check if data is valid and user is connected to discord
+                if (data.success && data.data && data.data.discord_status) {
+                    const status = data.data.discord_status;
+                    let displayStatus = status;
+                    let activityMessage = '';
+
+                    // update status indicator color
+                    if (statusDot) {
+                        statusDot.classList.remove('status-online', 'status-idle', 'status-dnd', 'status-offline');
+                        statusDot.classList.add(`status-${status}`);
+                    }
+
+                    // format status text for display
+                    switch (status) {
+                        case 'online':
+                            displayStatus = 'online';
+                            break;
+                        case 'idle':
+                            displayStatus = 'idle';
+                            break;
+                        case 'dnd':
+                            displayStatus = 'do not disturb';
+                            break;
+                        case 'offline':
+                            displayStatus = 'offline';
+                            break;
+                        default:
+                            displayStatus = 'unknown'; // fallback for unexpected status
+                            break;
+                    }
+
+                    // check for current activity
+                    if (data.data.activities && data.data.activities.length > 0) {
+                        const customStatusActivity = data.data.activities.find(act => act.type === 4); // type 4 is Custom Status
+                        const gameActivity = data.data.activities.find(act => act.type === 0 && act.name !== 'Custom Status');
+                        const musicActivity = data.data.activities.find(act => act.name === 'Apple Music' || 'Cider');
+
+                        if (customStatusActivity && customStatusActivity.state) {
+                            activityMessage = ` | ${customStatusActivity.state}`;
+                        } else if (gameActivity) {
+                            activityMessage = ` | playing ${gameActivity.name}`;
+                        } else if (musicActivity) {
+                            activityMessage = ` | listening to Apple Music`;
+                            if (musicActivity.details) {
+                                activityMessage += `: ${musicActivity.details}`;
+                            }
+                        }
+                        // if an activity is found, make sure it is displayed
+                        if (activityText) {
+                            activityText.textContent = activityMessage;
+                            activityText.style.display = 'inline';
+                        }
+                    } else {
+                        // if no activity, hide the activity text
+                        if (activityText) activityText.style.display = 'none';
+                    }
+
+                    // update status text
+                    if (statusText) statusText.textContent = `${displayStatus}`;
+
+                } else {
+                    // handle case where lanyard api returns no data or where im not connected
+                    if (statusDot) statusDot.className = 'status-indicator status-offline';
+                    if (statusText) statusText.textContent = 'discord offline (api issue or not connected)';
+                    if (activityText) activityText.style.display = 'none';
+                }
+            } catch (error) {
+                // log and display any errors during fetch
+                console.error('error fetching discord status:', error);
+                if (statusDot) statusDot.className = 'status-indicator status-offline';
+                if (statusText) statusText.textContent = 'discord offline (error loading)';
+                if (activityText) activityText.style.display = 'none';
+            }
+        }
+
+
+        /**
          * simulates a terminal command execution, clearing previous output and displaying new content.
          * @param {string} command - the command to simulate.
          */
@@ -776,6 +910,8 @@
             if (command === "whoami") {
                 outputContent = welcomeOutput;
                 backButton.style.display = 'none'; // hide back button on welcome screen
+                // fetch and display discord status when 'whoami' command is run
+                setTimeout(fetchDiscordStatus, currentDelay * 1000 + 100); // add a slight delay to ensure dom is ready
             } else if (command === "me") {
                 outputContent = aboutContent;
                 backButton.style.display = 'flex'; // show back button
