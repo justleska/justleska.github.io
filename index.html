@@ -910,7 +910,7 @@
             if (command === "whoami") {
                 outputContent = welcomeOutput;
                 backButton.style.display = 'none'; // hide back button on welcome screen
-                // fetch and display discord status when 'whoami' command is run
+                // fetch and display discord status when 'whoami' command is ran
                 setTimeout(fetchDiscordStatus, currentDelay * 1000 + 100); // add a slight delay to ensure dom is ready
             } else if (command === "me") {
                 outputContent = aboutContent;
