@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- indicate preferred color scheme for browsers -->
     <meta name="color-scheme" content="dark">
     <title>leska.wtf</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -285,6 +284,65 @@
             color: var(--text-primary);
             margin-bottom: 8px;
             text-shadow: 0 0 20px rgba(100, 200, 255, 0.3);
+            display: flex; /* Make it a flex container */
+            align-items: center; /* Vertically align items */
+            gap: 10px; /* Space between text and image */
+        }
+
+        /* styling for the added icon */
+        .welcome-icon {
+            width: 30px; /* Adjust size as needed */
+            height: auto;
+            vertical-align: middle;
+            border-radius: 50%; /* Make it circular */
+            box-shadow: 0 0 10px rgba(100, 200, 255, 0.3); /* Subtle glow */
+            position: relative; /* For tooltip positioning */
+            cursor: help; /* Indicate hoverable element */
+        }
+
+        /* tooltip container */
+        .tooltip-container {
+            position: relative;
+            display: inline-block; /* Allow proper positioning for the tooltip */
+        }
+
+        /* tooltip text */
+        .tooltip-container .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: var(--terminal-bg);
+            color: var(--text-primary);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position the tooltip above the icon */
+            left: 50%;
+            margin-left: -60px; /* Center the tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            border: 1px solid var(--border-glass);
+            box-shadow: var(--shadow-primary);
+        }
+
+        /* tooltip arrow */
+        .tooltip-container .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%; /* At the bottom of the tooltip */
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--terminal-bg) transparent transparent transparent;
+        }
+
+        /* show tooltip on hover */
+        .tooltip-container:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
         }
 
         /* welcome subtitle styling */
@@ -563,7 +621,13 @@
         // content for the terminal display
         const welcomeOutput = `
             <div class="output">
-                <div class="welcome-title">👋 hi, i'm leska</div>
+                <div class="welcome-title">
+                    hi, i'm leska
+                    <span class="tooltip-container">
+                        <img src="52590990568c26e4223885974b319c52.webp" alt="Leska Icon" class="welcome-icon">
+                        <span class="tooltiptext">yeah that's me lol</span>
+                    </span>
+                </div>
                 <div class="welcome-subtitle">welcome to my personal website</div>
                 <div id="discord-status-container" style="margin-top: 15px; font-size: 0.95rem;">
                     <span class="status-indicator" id="discord-status-dot"></span>
